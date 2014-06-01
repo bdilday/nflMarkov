@@ -13,7 +13,7 @@ def parsePlay(desc, vbose=0):
     pass, rush, punt, etc + yards gained.
     to make it easier, the minimum we need to 
     pass on to the markov chain code is
-    dwn, ytg, yfog, yds
+    dwn, ytg, yfog, yds 
     '''
 
     if vbose>=2:
