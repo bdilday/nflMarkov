@@ -4,6 +4,7 @@
 import os, sys
 import json
 import re, glob
+import nflgame
 
 
 #########################
@@ -18,8 +19,7 @@ def parsePlay(desc, vbose=0):
     if vbose>=2:
         print 'starting desc', desc
 
-    if 'eligble' in desc:
-        desc = desc.replace('eligble', 'eligible')
+
 
     desc = desc.replace('{','')
     desc = desc.replace('}','')
@@ -37,6 +37,17 @@ def parsePlay(desc, vbose=0):
             if vbose>=2:
                 print 'abbrev', fn, abbrev
 
+# a billion special exceptions!
+    if 'eligble' in desc:
+        desc = desc.replace('eligble', 'eligible')
+
+    if '[] right end to WAS 40 for 2 yards (D.Williams, C.Mays).' in desc:
+        desc = desc.replace('[] right end to WAS 40 for 2 yards (D.Williams, C.Mays).', 'C.Portis right end to WAS 40 for 2 yards (D.Williams, C.Mays).')
+                    
+    
+    if 'Randle El' in desc:
+        desc = re.sub('Randle\s+El', 'RandleEl', desc)
+        print 'randle', desc
 
     if ' Ryan' in desc:
         desc = re.sub('\s+Ryan',' M.Ryan',desc)
@@ -161,6 +172,7 @@ def parsePlay(desc, vbose=0):
                  ,'(No Huddle, Shotgun)'
                  ,'(Run formation)'
 
+                 ,'attempted backward pass to Portis near sideline'
                  ,'Flynn in at qb'
 
                  ,'Reverse'
@@ -216,6 +228,7 @@ def parsePlay(desc, vbose=0):
 
     aposters = ['O\'Sullivan'
                 ,'W.Ta\'ufo\'ou'
+                ,'O.O\'Neal'
                 ]
 
     for h in aposters:
@@ -298,7 +311,7 @@ def parsePlay(desc, vbose=0):
                     yds = int(m.group(2))
                 except AttributeError:
                     print '***************'
-                    print 'regexp failed. exit.'
+                    print 'regexp failed (PASS). exit.'
                     print desc
                     sys.exit()
 
@@ -318,7 +331,7 @@ def parsePlay(desc, vbose=0):
                 yds = int(m.group(2))
             except AttributeError:
                 print '***************'
-                print 'regexp failed. exit.'
+                print 'regexp failed (FG). exit.'
                 print desc
                 sys.exit()    
             type = 'RUSH'
@@ -343,6 +356,12 @@ def parsePlay(desc, vbose=0):
         playerName = m.group(1)
         yds = 0
 
+    elif 'FUMBLES' in desc:
+        type = 'TO'
+        m = re.search(playerRegExp, desc)
+        playerName = m.group(1)
+        yds = 0
+
     elif 'punt' in desc:
         type ='PUNT'
         yds = 0
@@ -352,6 +371,11 @@ def parsePlay(desc, vbose=0):
         yds = 0
 
     elif 'Neutral Zone Infrac' in desc:
+        type = 'PENA'
+        m = re.search('\s+(-{0,1}[0-9]+)\s+yard', desc)
+        yds = int(m.group(1))
+
+    elif 'PENALTY' in desc:
         type = 'PENA'
         m = re.search('\s+(-{0,1}[0-9]+)\s+yard', desc)
         yds = int(m.group(1))
@@ -370,6 +394,11 @@ def parsePlay(desc, vbose=0):
         type = 'KICK'
         yds = 0
 
+    elif 'injured during the play' in desc:
+        type = 'NOPL'
+        yds = 0
+
+
     else:
         type = 'RUSH'
         if 'no gain' in desc:
@@ -383,7 +412,7 @@ def parsePlay(desc, vbose=0):
                 yds = int(m.group(2))
             except AttributeError:
                 print '***************'
-                print 'regexp failed. exit.'
+                print 'regexp failed (RUSH). exit.'
                 print desc
                 sys.exit()
 
@@ -419,42 +448,38 @@ def parsePlay(desc, vbose=0):
     return type, yds, playerName
 
 #########################
-def parseJson(ifile, vbose=0):
-    ''' output should be game_id, seas, drive_id, dwn, ytg, yfog, type, 
-    yds, pts, dseq, suc, pts_o, pts_d. Then it will be straight-forward to 
-    use existing code to generate transition matrix '''
-
+def parseDict(j, g, vbose=0):
     vetoKeys = ['END GAME', 'Minute Warning', 'Timeout', 'END QUARTER']
 
-    fp = open(ifile)
-    j = json.load(fp)
-    fp.close()
-
+    dk = g.eid
     data = []
 
-    try:
-        dk = j.keys()[1]
-        ns = j[dk]['drives'].keys()
-    except TypeError:
-        dk = j.keys()[0]
-        ns = j[dk]['drives'].keys()
+    homeTeam = j['home']['abbr']
+    awayTeam = j['away']['abbr']
+    ns = j['drives'].keys()
+    print 'home', homeTeam, 'away', awayTeam
     for n in ns:
         if n=='crntdrv':
             continue
-        print dk, n
-        ps = j[dk]['drives'][n]['plays'].keys()
-        print dk, n, ps
+        print n
+        ps = j['drives'][n]['plays'].keys()
+        print n, ps
         for p in ps:
-#            print p, 
-            x=j[dk]['drives'][n]['plays'][p]
+
+            x=j['drives'][n]['plays'][p]
+            print p, x
             dwn = x['down']
             dist = x['ydstogo']
             sfog = x['yrdln']
             posteam = x['posteam']
             desc = x['desc']
+            if sfog is None:
+                continue
             if len(sfog)==0:
                 continue
-            print p, dwn, dist, posteam, desc , '|', sfog
+
+            date = g.eid[0:0+8]
+            print p, dwn, dist, posteam, date, desc , '|', sfog
 
             iveto = False
             for vk in vetoKeys:
@@ -473,22 +498,62 @@ def parseJson(ifile, vbose=0):
                 yfog = 100 - yfog
             print p, dwn, dist, yfog, posteam
             type, yds, playerName = parsePlay(desc, vbose=vbose)
-            data.append(tuple([dwn, dist, yfog, type, yds, playerName]))
+
+            data.append(tuple([dk, date, awayTeam, homeTeam, dwn, dist, yfog, type, yds, playerName, posteam]))
     return data
 
 #########################
-if __name__=='__main__':
-    fs = glob.glob('./jsonFiles/*json')
-    ifile = fs[0]
-    ifile = '2009110801.json'
-    vbose = 0
+def parseJson(ifile, vbose=0):
+    ''' output should be game_id, seas, drive_id, dwn, ytg, yfog, type, 
+    yds, pts, dseq, suc, pts_o, pts_d. Then it will be straight-forward to 
+    use existing code to generate transition matrix '''
 
-    for ia, a in enumerate(sys.argv):
-        if a=='-vbose':
-            vbose = int(sys.argv[ia+1])
+
+    fp = open(ifile)
+    j = json.load(fp)
+    fp.close()
+
+    try:
+        dk = j.keys()[1]
+        ns = j[dk]['drives'].keys()
+    except TypeError:
+        dk = j.keys()[0]
+        ns = j[dk]['drives'].keys()
+
+
+    return parseDict(j[dk], g=ifile.split('/')[-1])
+
+
+#########################
+def doNflgame(vbose=0):
+    
+#    gs = nflgame.games(2013
+    gs = nflgame.games(range(2009, 2013+1))
 
     ofp = open('pbpJson.csv', 'w')
-    ofp.write('game_id,seas,dwn,ytg,yfog,type,yds\n')
+    ofp.write('igame_id,seas,game_id,date,awayTeam,homeTeam,dwn,ytg,yfog,type,yds,playerName,posTeam\n')
+    ig = 0
+#    for ifile in fs[0:10]:
+    for g in gs:
+        ig += 1
+        seas = g.season()
+        data = parseDict(g.data, g=g, vbose=vbose)
+        for d in data:
+            print ig, seas, d 
+            ofp.write('%d,%d,' % (ig, seas))
+            for v in d[0:-1]:
+                ofp.write('%s,' % str(v))
+            v = d[-1]
+            ofp.write('%s\n' % str(v))
+    ofp.close()
+
+#########################
+def doJson(dir='./jsonFiles', vbose=0):
+
+    fs = glob.glob(dir + '/2013*json')
+
+    ofp = open('pbpJson.csv', 'w')
+    ofp.write('igame_id,seas,game_id,date,awayTeam,homeTeam,dwn,ytg,yfog,type,yds,playerName,posTeam\n')
     ig = 0
 #    for ifile in fs[0:10]:
     for ifile in fs[:]:
@@ -504,3 +569,20 @@ if __name__=='__main__':
             v = d[-1]
             ofp.write('%s\n' % str(v))
     ofp.close()
+
+#########################
+if __name__=='__main__':
+
+    idoJson = False
+#    idoJson = True
+    vbose = 0
+
+    for ia, a in enumerate(sys.argv):
+        if a=='-vbose':
+            vbose = int(sys.argv[ia+1])
+
+    if idoJson:
+        doJson(dir='./jsonFiles', vbose=vbose)
+    else:
+        doNflgame(vbose=vbose)
+
