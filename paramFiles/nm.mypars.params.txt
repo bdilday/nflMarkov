@@ -1,0 +1,138 @@
+#####################
+# April 28, 2014
+# Ben Dilday
+#########
+# parameter file for nflMarkov code
+# # denotes a comment,
+# the general idea is, 
+# parameter knotA valueA 
+# parameter knotB valueB ...
+# where the knot-value combinations define an interpolating function,
+# knot means yfog (yards from own goal)
+# i.e. 20 means you are 80 yards away from scoring a TD
+########## 
+# the main thing to switch is 
+# interp-type pl or interp-type sp
+# where pl means piece-wise linear, and 
+# sp means spline 
+# only pl is defined for now...
+#################
+
+
+interp-type pl
+modelType userModel
+modelName noUseForAModelName
+
+## here is an idea for extending to make the probabilities
+## functions of down, yards-to-go, and yfog
+## ie do piece-wise (bilinear) interpolation in 2d,
+## conditioned on down. for now Im sticking with the simpler implementation
+## where probs are only functions of yfog 
+# structure is 
+# key_{dwn} yards-from-own-goal yards-to-go value
+# for example 
+# runProb_1   0   0  1.0
+# runProb_1   0  20  0.6
+# runProb_1 100   0  1.0
+# runProb_1 100  20  0.0
+# means when backed up against goalline (yfog=0), 
+# interpolate between 1 and 0.6 run prob as yards to go goes from 0 to 20
+# when about to score (yfog=100), interpolate between 1 and 0 as yards to go 
+# varies from 0 to 20
+# of course theres no such state as 20 yards to go from the 0, 
+# but these just form points that define the bilinear interpolation 
+
+# interceptions and fumbles
+intProb 0 0 100 0   0.03
+intProb 0 0 100 100 0.03
+
+fumProb 0 0 100 0  0.006
+fumProb 0 0 100 100 0.006
+
+incompleteProb 0 0 100 0 0.35
+incompleteProb 0 0 100 100 0.35
+
+# columns are 
+# x0, s1, s2 for Bazin function
+yardsDistParsRush 0 0 100   0 1.353 1.664 3.317 
+yardsDistParsRush 0 0 100   5 1.353 1.664 3.317
+yardsDistParsRush 0 0 100  15 1.180 1.561 3.645 
+yardsDistParsRush 0 0 100  25 1.209 1.505 3.530 
+yardsDistParsRush 0 0 100  35 1.167 1.528 3.571
+yardsDistParsRush 0 0 100  45 1.081 1.545 3.649 
+yardsDistParsRush 0 0 100  55 0.882 1.517 3.784 
+yardsDistParsRush 0 0 100  65 0.977 1.557 3.589 
+yardsDistParsRush 0 0 100  75 0.847 1.410 3.577 
+yardsDistParsRush 0 0 100  85 1.118 1.525 3.320 
+yardsDistParsRush 0 0 100  95 0.470 0.703 1.379 
+yardsDistParsRush 0 0 100 100 0.470 0.703 1.379 
+
+# columns are 
+# x0, s1, s2 for Bazin function
+# g/a, mean, std for Gaussian (i.e. sacks) 
+# g/a determines relative normalization of the 2 components
+yardsDistParsPass 0 0 100   0 24.5 1.8 28.0 0.12 -6.5 3.0
+yardsDistParsPass 0 0 100 100 24.5 1.8 28.0 0.12 -6.5 3.0
+
+
+##################################################
+###########################################
+# things that depend on ytg as well as yfog...
+
+# i.e. only go for it if ytg <= Thresh
+4thGoForItThresh 4 0 100 0 3 
+4thGoForItThresh 4 0 100 100 3 
+
+4thGoForItProb 4 0 100 0 0
+4thGoForItProb 4 0 100 22 0.05
+4thGoForItProb 4 0 100 36 0.10
+4thGoForItProb 4 0 100 41 0.16
+4thGoForItProb 4 0 100 52 0.26
+4thGoForItProb 4 0 100 55 0.33
+4thGoForItProb 4 0 100 59 0.50
+4thGoForItProb 4 0 100 61 0.59
+4thGoForItProb 4 0 100 62 0.63
+4thGoForItProb 4 0 100 64 0.75
+4thGoForItProb 4 0 100 69 0.58
+4thGoForItProb 4 0 100 76 0.36
+4thGoForItProb 4 0 100 84 0.30
+4thGoForItProb 4 0 100 97 0.30
+4thGoForItProb 4 0 100 98 0.05
+4thGoForItProb 4 0 100 100 0.50
+
+
+4thFgProb 4 0 100   0 0
+4thFgProb 4 0 100  54 0.00
+4thFgProb 4 0 100  64 0.10
+4thFgProb 4 0 100  66 0.23
+4thFgProb 4 0 100  67 0.32
+4thFgProb 4 0 100  68 0.38
+4thFgProb 4 0 100  69 0.42
+4thFgProb 4 0 100  72 0.57
+4thFgProb 4 0 100  74 0.65
+4thFgProb 4 0 100  82 0.70
+4thFgProb 4 0 100  97 0.70
+4thFgProb 4 0 100  98  0.5
+4thFgProb 4 0 100  100 0.5
+
+
+FgMakeProb 4 0 100 0 0
+FgMakeProb 4 0 100 60 0.10
+FgMakeProb 4 0 100 63 0.52
+FgMakeProb 4 0 100 65 0.53
+FgMakeProb 4 0 100 70 0.61
+FgMakeProb 4 0 100 75 0.70
+FgMakeProb 4 0 100 80 0.85
+FgMakeProb 4 0 100 85 0.89
+FgMakeProb 4 0 100 90 0.91
+FgMakeProb 4 0 100 95 0.97
+FgMakeProb 4 0 100 100 0.99
+
+
+############################
+# things that depend on ytg and down, as well as yfog...
+passProb 0 0 100   0 0.2
+passProb 0 0 100  20 0.6
+passProb 0 0 100  80 0.6
+passProb 0 0 100  90 0.4
+passProb 0 0 100 100 0.3
