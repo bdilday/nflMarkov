@@ -1366,7 +1366,7 @@ class nflMarkov:
             fgProb00 = self.getProb(oldState, probType='FG00', modelType=modelType)
 
             if self.vbose>=1:
-                print '%5d' % i, oldState, 'toProb', toProb, 'fgProb', fgProb
+                print '%5d' % i, oldState, 'toProb', toProb, 'fgProb01', fgProb01, 'fgProb00', fgProb00
 
             # ydist comes back normalized to 1
             # change it
