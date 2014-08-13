@@ -1464,7 +1464,11 @@ class nflMarkov:
         return ans1
 
 ############################
-    def exponentiateMatrix(self, m, n=64, mtol=0.01, doSparse=False):
+    def exponentiateMatrix(self, m, n=64, mtol=0.01
+                           , doSparse=False
+                           , doConvergeCheck=True
+                           , elementTol=1e-6
+                           ):
         # init
 
         if doSparse:
@@ -1493,20 +1497,22 @@ class nflMarkov:
                 mnew.prune()                
                 print 'copying matrix...'
                 print 'mnew has ', mnew.nnz, 'non-zero elements...'
-                print 'number < 1e-6: ', numpy.sum(mnew.data<1e-6)
-                cc=numpy.where(mnew.data<=1e-6)
+                print 'number < %.2e: %d' % (elementTol, numpy.sum(mnew.data<elementTol))
+                cc=numpy.where(mnew.data<=elementTol)
                 mnew.data[cc]=0
                 mnew.eliminate_zeros()
                 mnew.prune()                
                 print 'now mnew has ', mnew.nnz, 'non-zero elements...'
-                print 'number < 1e-6: ', numpy.sum(mnew.data<1e-6)
+                print 'number < %.2e: %d' % (elementTol, numpy.sum(mnew.data<elementTol))
                 mold = copy.copy(mnew)
 #                print 'making sparse...'
 #                mold = scipy.sparse.csc_matrix(mold)
                 print 'multiplying...'
                 mnew = mnew.dot(mold)
-                print 'getting covergance stat...'
-                conv = self.converganceStat(mold, mnew, doSparse=doSparse)
+                if  doConvergeCheck:
+                    print 'getting covergance stat...'
+                    conv = self.converganceStat(mold, mnew, doSparse=doSparse)
+
                 print 'sum of elements is ', mnew.sum()
                 
             else:
@@ -1514,8 +1520,9 @@ class nflMarkov:
                 mold = copy.copy(mnew)
                 print 'multiplying...'
                 mnew = mnew.dot(mold)
-                print 'getting covergance stat...'
-                conv = self.converganceStat(mold, mnew, doSparse=doSparse)
+                if  doConvergeCheck:
+                    print 'getting covergance stat...'
+                    conv = self.converganceStat(mold, mnew, doSparse=doSparse)
 
 #            mnew = mnew.dot(mold)
 
@@ -1566,6 +1573,8 @@ if __name__=='__main__':
     inModelType= None
     inModelName = None
     doSparse = False
+    doConvergeCheck = True
+    elementTol = 1e-6
 
     nm.modelType = 'emp_2009_2013'
     nm.modelName = 'emp_2009_2013'
@@ -1593,12 +1602,19 @@ if __name__=='__main__':
             vbose = int(sys.argv[ia+1])
         elif a=='-doSparse':
             doSparse = bool(int(sys.argv[ia+1]))
+        elif a=='-doConvergeCheck':
+            doConvergeCheck = bool(int(sys.argv[ia+1]))
+        elif a=='-elementTol':
+            elementTol = float(sys.argv[ia+1])
         elif a in ['-h', '-help', '--help']:
             nm.printUsage()
             sys.exit()
         elif '-' in a:
-            print 'unknown argument ', a
-            raise Exception
+            if re.search('[1-9\.]+e-[1-9]+',a):
+                pass
+            else:
+                print 'unknown argument ', a
+                raise Exception
 
     nm.doSparse=doSparse
     nm.vbose = vbose
@@ -1634,7 +1650,7 @@ if __name__=='__main__':
     nEndStates = len(nm.endStates)
     mold = copy.deepcopy(nm.transitionMatrix)
     print 'starting exponentiation...'
-    mnew = nm.exponentiateMatrix(mold, n=expN, mtol=expTol, doSparse=doSparse)
+    mnew = nm.exponentiateMatrix(mold, n=expN, mtol=expTol, doSparse=doSparse, doConvergeCheck=doConvergeCheck, elementTol=elementTol)
     nm.resultMatrix = mnew[0:nEndStates,:]
     nm.expectedPoints = (pylab.transpose(nm.resultMatrix)).dot(pylab.reshape(nm.endStatePoints, (nEndStates,1)))
 
