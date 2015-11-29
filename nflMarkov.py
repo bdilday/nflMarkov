@@ -4,7 +4,7 @@ import pylab
 import os, sys
 import re
 import pickle
-import numpy
+import numpy as np
 import copy
 from scipy import interpolate
 import scipy.sparse
@@ -380,7 +380,7 @@ class nflMarkov:
 
         fig = matplotlib.pyplot.figure()
         matplotlib.pyplot.plot(xx, pp, 'b', label='PASS', drawstyle='steps')
-        matplotlib.pyplot.plot(xx, 1.0-numpy.array(pp), 'r', label='RUSH', drawstyle='steps')
+        matplotlib.pyplot.plot(xx, 1.0-np.array(pp), 'r', label='RUSH', drawstyle='steps')
         matplotlib.pyplot.xlabel('yfog')
         matplotlib.pyplot.ylabel('prob')
         matplotlib.pyplot.ylim(0, 1)
@@ -720,7 +720,7 @@ class nflMarkov:
         Numerically this is 7924 x 7924 '''
         sz = len(self.int2state)
         del self.transitionMatrix
-        self.transitionMatrix = numpy.zeros((sz, sz))
+        self.transitionMatrix = np.zeros((sz, sz))
 
     def infoToState(self, dwn, ytg, yfog, parity=0):
         k='%d_%02d_%02d_%02d' % (dwn, ytg, yfog, parity)
@@ -737,13 +737,13 @@ class nflMarkov:
         return dwn, ytg, yfog, parity
 
     def reduceMatrix(self, tMatrix):
-        cc = numpy.where(tMatrix>0)
-        ans = (numpy.shape(tMatrix), cc, tMatrix[cc])
+        cc = np.where(tMatrix>0)
+        ans = (np.shape(tMatrix), cc, tMatrix[cc])
         return ans
 
     def expandMatrix(self, rMatrix):
         nx, ny = rMatrix[0]
-        ans = numpy.zeros((nx, ny))
+        ans = np.zeros((nx, ny))
         cc = rMatrix[1]
         ans[cc] = rMatrix[2]
         return ans
@@ -977,7 +977,7 @@ class nflMarkov:
                     fgp = fgp0/testp
                     puntp = 1.0-gfp-fgp
 
-                    if vbose>=1:
+                    if self.vbose>=1:
                         print '***********'
                         print 'WARNING: rescaling gfp and fgp'
                         print 'state', state, 'testp', testp
@@ -1038,10 +1038,10 @@ class nflMarkov:
         tx = x-1.0*x0
         k1 = 1.0*s1
         k2 = (s1*s2)/(1.0*s1+s2)
-        f1 = A*numpy.exp(tx/k1)/(1.0 + numpy.exp(tx/k2))
+        f1 = A*np.exp(tx/k1)/(1.0 + np.exp(tx/k2))
         f2 = 0.0
         if G>0:
-            f2 = G*numpy.exp(-0.5*((x-1.0*g0)/gs)**2)
+            f2 = G*np.exp(-0.5*((x-1.0*g0)/gs)**2)
         return f1 + f2
 
 
@@ -1424,7 +1424,7 @@ class nflMarkov:
         if get to +-n, stay there '''
         
         n = 2*k+1
-        m = numpy.zeros((n,n))
+        m = np.zeros((n,n))
         for i in range(n):
             ix = i - k
             for j in range(n):
@@ -1452,7 +1452,7 @@ class nflMarkov:
             ans1=k.sum()
         else:
             print 'multiplying ms for converg...'
-            k = numpy.multiply(nn,nn)
+            k = np.multiply(nn,nn)
             print 'getting sum...'
             ans1 = sum(sum(k,0))
 
@@ -1497,13 +1497,13 @@ class nflMarkov:
                 mnew.prune()                
                 print 'copying matrix...'
                 print 'mnew has ', mnew.nnz, 'non-zero elements...'
-                print 'number < %.2e: %d' % (elementTol, numpy.sum(mnew.data<elementTol))
-                cc=numpy.where(mnew.data<=elementTol)
+                print 'number < %.2e: %d' % (elementTol, np.sum(mnew.data<elementTol))
+                cc=np.where(mnew.data<=elementTol)
                 mnew.data[cc]=0
                 mnew.eliminate_zeros()
                 mnew.prune()                
                 print 'now mnew has ', mnew.nnz, 'non-zero elements...'
-                print 'number < %.2e: %d' % (elementTol, numpy.sum(mnew.data<elementTol))
+                print 'number < %.2e: %d' % (elementTol, np.sum(mnew.data<elementTol))
                 mold = copy.copy(mnew)
 #                print 'making sparse...'
 #                mold = scipy.sparse.csc_matrix(mold)
@@ -1636,7 +1636,7 @@ if __name__=='__main__':
 
     print 'making transition matrix...'
     nm.makeTransitionMatrix(modelType=nm.modelType)
-    imax, jmax = numpy.shape(nm.transitionMatrix)
+    imax, jmax = np.shape(nm.transitionMatrix)
 
 #    for i in range(imax):
 #        if i%1000==0:
