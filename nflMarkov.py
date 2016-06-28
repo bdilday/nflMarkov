@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import pylab
 import os, sys
 import re
 import pickle
@@ -9,6 +8,7 @@ import copy
 from scipy import interpolate
 import scipy.sparse
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import pyplot as plt
 import matplotlib
 from matplotlib import pyplot as plt
 
@@ -30,7 +30,7 @@ class nflMarkov:
         ndwns = len(dwns)
         nrows = ndwns*nytg + (ndwns-1)
         ncols = nyfog
-        mm = pylab.zeros((nrows, ncols))
+        mm = np.zeros((nrows, ncols))
         
         row_cnt = 0
         
@@ -38,7 +38,7 @@ class nflMarkov:
         ylabs = []
 
         for dwn_cnt, idwn in enumerate(dwns):
-            for c, i in enumerate(list(pylab.array([4,9,14])+dwn_cnt*20)):
+            for c, i in enumerate(list(np.array([4,9,14])+dwn_cnt*20)):
                 yt.append(i+0.5)
                 ylabs.append((c+1)*5)
             for iytg in range(ytgmin, ytgmax+1):            
@@ -67,25 +67,25 @@ class nflMarkov:
             row_cnt += 1
 
 
-        pylab.pcolor(mm, cmap=plt.cm.Blues_r)
-        ax = pylab.gca()
+        plt.pcolor(mm, cmap=plt.cm.Blues_r)
+        ax = plt.gca()
         if vbose>=1:
             print yt
             print ylabs
             
         ax.set_yticks(yt, minor=False)
 
-        tmp = list(pylab.ylim())
+        tmp = list(plt.ylim())
         tmp.sort()
-        pylab.ylim(tuple(tmp[::-1]))
+        plt.ylim(tuple(tmp[::-1]))
 
         ax.set_yticklabels(ylabs, minor=False, size='xx-small')
-        pylab.ylabel('yards-to-go')
-        pylab.xlabel('yards-from-own-goal')
+        plt.ylabel('yards-to-go')
+        plt.xlabel('yards-from-own-goal')
 
-        pylab.title(htype + ' (downs %d-%d)' % (dwns[0], dwns[-1]))
+        plt.title(htype + ' (downs %d-%d)' % (dwns[0], dwns[-1]))
         if ishow:
-            pylab.show()
+            plt.show()
         return mm
 
 
@@ -1652,7 +1652,7 @@ if __name__=='__main__':
     print 'starting exponentiation...'
     mnew = nm.exponentiateMatrix(mold, n=expN, mtol=expTol, doSparse=doSparse, doConvergeCheck=doConvergeCheck, elementTol=elementTol)
     nm.resultMatrix = mnew[0:nEndStates,:]
-    nm.expectedPoints = (pylab.transpose(nm.resultMatrix)).dot(pylab.reshape(nm.endStatePoints, (nEndStates,1)))
+    nm.expectedPoints = (np.transpose(nm.resultMatrix)).dot(np.reshape(nm.endStatePoints, (nEndStates,1)))
 
 
     print 'results for 1st and 10 at the 10, '
