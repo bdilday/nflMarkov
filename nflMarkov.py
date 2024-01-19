@@ -70,8 +70,8 @@ class nflMarkov:
         plt.pcolor(mm, cmap=plt.cm.Blues_r)
         ax = plt.gca()
         if vbose>=1:
-            print yt
-            print ylabs
+            print(yt)
+            print(ylabs)
             
         ax.set_yticks(yt, minor=False)
 
@@ -167,8 +167,8 @@ class nflMarkov:
                 continue
 
             if self.vbose>=1:
-                print 'create k', k
-                print 'params[k]', params[k]
+                print(('create k', k))
+                print(('params[k]', params[k]))
             xx = {}
             yy = {}
             icols = params[k].keys()
@@ -178,8 +178,8 @@ class nflMarkov:
             ndata = len(params[k][icols[0]])
 
             if self.vbose>=1:
-                print 'icols', icols, ncols, ndata
-                print k, params[k]
+                print (('icols', icols, ncols, ndata))
+                print ((k, params[k]))
 
             for idata in range(ndata):
                 dwn = params[k][0][idata]
@@ -201,7 +201,7 @@ class nflMarkov:
                             yy[dwn][iytg][iy] = []
                             xx[dwn][iytg][iy] = []
                         if self.vbose>=1:
-                            print k, dwn, iytg, iy, params[k]
+                            print ((k, dwn, iytg, iy, params[k]))
                         yy[dwn][iytg][iy].append(params[k][iy][idata])
                         xx[dwn][iytg][iy].append(yfog)
 
@@ -219,9 +219,9 @@ class nflMarkov:
                     icols = yy[dwn][iytg].keys()
                     for icol in icols:
                         if self.vbose>=1:
-                            print 'with k=', k, 'dwn=', dwn, 'iytg', iytg, 'at icol=', icol, 'creating interp function with '
-                            print 'xx= ', xx[dwn][iytg][icol]
-                            print 'yy= ', yy[dwn][iytg][icol]
+                            print (('with k=', k, 'dwn=', dwn, 'iytg', iytg, 'at icol=', icol, 'creating interp function with '))
+                            print (('xx= ', xx[dwn][iytg][icol]))
+                            print (('yy= ', yy[dwn][iytg][icol]))
                         interpFunc = \
                             interpolate.interp1d(xx[dwn][iytg][icol], 
                                                  yy[dwn][iytg][icol],
@@ -252,7 +252,7 @@ class nflMarkov:
                                     self.modelFunctions[k][idwn][iytg][icol] = interpFunc
 
         if self.vbose>=2:
-            print 'modelFunctions:', self.modelFunctions
+            print (('modelFunctions:', self.modelFunctions))
 
     def makeDiagnosticPlots(self, pdfFile=None):
         if pdfFile is None:
@@ -655,7 +655,7 @@ class nflMarkov:
             k = st[0]
 
             if self.vbose>=1:
-                print 'loadParams', k, st
+                print (('loadParams', k, st))
 
             if k in ['interp-type']:
                 self.params[k] = st[1]
@@ -794,7 +794,7 @@ class nflMarkov:
             val = self.modelFunctions[k][dwn][ytg][idx_f](yfog)
             self.probFuncVals[k][dwn][idx][yfog] = val
             if self.vbose>=1:
-                print 'adding probFuncVal', k, dwn, idx, yfog, val
+                print (('adding probFuncVal', k, dwn, idx, yfog, val))
         
     def doInitProb(self, probType, modelType):
         ''' given the model, fill in FG and/or TO probs for each state 
@@ -888,7 +888,7 @@ class nflMarkov:
 
         else:
             # if its not empirical, it must be a user model
-            print 'non empirical'
+            print ('non empirical')
             for i, state in enumerate(allStates):
 
                 k = self.state2int[state]
@@ -978,11 +978,11 @@ class nflMarkov:
                     puntp = 1.0-gfp-fgp
 
                     if self.vbose>=1:
-                        print '***********'
-                        print 'WARNING: rescaling gfp and fgp'
-                        print 'state', state, 'testp', testp
-                        print 'gfp0 fgp0 puntp0', gfp0, fgp0, puntp0 
-                        print 'gfp fgp puntp', gfp, fgp, puntp 
+                        print ('***********')
+                        print ('WARNING: rescaling gfp and fgp' )
+                        print (('state', state, 'testp', testp ))
+                        print (('gfp0 fgp0 puntp0', gfp0, fgp0, puntp0 ))
+                        print (('gfp fgp puntp', gfp, fgp, puntp ))
 
                     puntp = 0.0                        
 
@@ -1003,13 +1003,13 @@ class nflMarkov:
                     raise Exception
 
                 if prob<0:
-                    print 'Fatal error: prob<0'
-                    print 'gfp', gfp
-                    print 'fgp', fgp
-                    print 'fgmakep', fgmakep
-                    print 'puntp', puntp
-                    print 'state', state
-                    print 'modelType', modelType
+                    print ('Fatal error: prob<0')
+                    print (('gfp', gfp))
+                    print (('fgp', fgp))
+                    print (('fgmakep', fgmakep))
+                    print (('puntp', puntp))
+                    print (('state', state))
+                    print (('modelType', modelType))
                     sys.exit()
                 ans[state] = prob
 
@@ -1157,7 +1157,7 @@ class nflMarkov:
                 gs = self.modelFunctions['yardsDistParsPass'][dwn][ytg][9](yfog)
                 self.fparsP[k] = [A, x0, s1, s2, G, g0, gs]
                 if self.vbose>=1:
-                    print 'pass pars', dwn, ytg, yfog, k, self.fparsP[k]
+                    print (('pass pars', dwn, ytg, yfog, k, self.fparsP[k]))
 
             xs = range(self.minYd,100)
             if not k in self.fvalsP:
@@ -1165,7 +1165,7 @@ class nflMarkov:
                 val = self.fBazinPlusGauss(xs, A=A, x0=x0, s1=s1, s2=s2, G=G, g0=g0, gs=gs)
                 self.fvalsP[k] = val
                 if self.vbose>=1:
-                    print 'pass val', dwn, ytg, yfog, k, self.fvalsP[k]
+                    print (('pass val', dwn, ytg, yfog, k, self.fvalsP[k]))
 
 
                     
@@ -1180,7 +1180,7 @@ class nflMarkov:
 
                 self.fparsR[k] = [A, x0, s1, s2, G, g0, gs]
                 if self.vbose>=1:
-                    print 'rush pars', dwn, ytg, yfog, k, self.fparsR[k]
+                    print (('rush pars', dwn, ytg, yfog, k, self.fparsR[k]))
 
             xs = range(self.minYd,100)
             if not k in self.fvalsR:
@@ -1188,7 +1188,7 @@ class nflMarkov:
                 val = self.fBazinPlusGauss(xs, A=A, x0=x0, s1=s1, s2=s2, G=G, g0=g0, gs=gs)
                 self.fvalsR[k] = val
                 if self.vbose>=1:
-                    print 'rush vals', dwn, ytg, yfog, self.fvalsP[k]
+                    print (('rush vals', dwn, ytg, yfog, self.fvalsP[k]))
 
             # pass ?
             passProb = self.modelFunctions['passProb'][dwn][ytg][4](yfog)
@@ -1202,7 +1202,7 @@ class nflMarkov:
 #self.fBazinPlusGauss(ix, A=A, x0=x0, s1=s1, s2=s2, G=G, g0=g0, gs=gs)
 
                 if self.vbose>=2:
-                    print state, 'pass', 'ic', ic, 'ix', ix, A, x0, s1, s2, G, g0, gs, val
+                    print ((state, 'pass', 'ic', ic, 'ix', ix, A, x0, s1, s2, G, g0, gs, val))
 
                 passYdist[ix] = val
 
@@ -1227,7 +1227,7 @@ class nflMarkov:
                 val = self.fvalsR[k][ic]
 
                 if self.vbose>=2:
-                    print state, 'rush', 'ic', ic, 'ix', ix, A, x0, s1, s2, G, g0, gs, val
+                    print(( state, 'rush', 'ic', ic, 'ix', ix, A, x0, s1, s2, G, g0, gs, val))
 
 
                 runYdist[ix] = val
@@ -1243,12 +1243,12 @@ class nflMarkov:
             self.reNorm(runYdist, runProb)
 
             if self.vbose>=1:
-                print 'pass rush incomplete Prob', dwn, ytg, yfog, passProb, runProb, incProb
+                print (('pass rush incomplete Prob', dwn, ytg, yfog, passProb, runProb, incProb))
 
             # and sum them up...
             for i in range(self.minYd,100):
                 if self.vbose>=1:
-                    print 'yardsDist ', dwn, ytg, yfog, i, 'RUSH', runYdist[i], 'PASS', passYdist[i]
+                    print(( 'yardsDist ', dwn, ytg, yfog, i, 'RUSH', runYdist[i], 'PASS', passYdist[i]))
                 ydist[i] = runYdist[i]
                 ydist[i] += passYdist[i]
             # and finally, renormalize to 1
@@ -1302,10 +1302,7 @@ class nflMarkov:
             ns += 'm'
 
         if self.vbose>=1:
-            print 'old', state, self.state2int[state], \
-                'y', y, \
-                'new', ns, self.state2int[ns], \
-                'parity', parity
+            print (('old', state, self.state2int[state],'y', y,  'new', ns, self.state2int[ns], 'parity', parity))
 
         return ns
 
@@ -1341,7 +1338,7 @@ class nflMarkov:
 #                sys.exit()
 
             if i%1000==0:
-                print i, n, oldState
+                print ((i, n, oldState))
 
             # if oldState is an end state, its already been set so continue
             if oldState in self.endStates:

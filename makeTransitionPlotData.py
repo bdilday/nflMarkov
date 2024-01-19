@@ -122,7 +122,7 @@ if __name__=='__main__':
 
 
     for p in paramFile:
-        print 'loading file', p
+        print('loading file'), p
         nm.loadParamsFromFile(p)
 
     if not inModelType is None:
@@ -132,7 +132,7 @@ if __name__=='__main__':
 
     nm.createModelFunctions()
 
-    print 'making transition matrix...'
+    print('making transition matrix...')
     nm.makeTransitionMatrix(modelType=nm.modelType)
     imax, jmax = np.shape(nm.transitionMatrix)
 
